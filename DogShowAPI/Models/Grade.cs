@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DogShowAPI.Models
 {
-    public partial class Grades
+    public partial class Grade
     {
         public int GradeId { get; set; }
         public int GradeLevel { get; set; }

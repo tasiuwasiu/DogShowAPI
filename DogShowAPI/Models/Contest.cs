@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DogShowAPI.Models
 {
-    public partial class Contests
+    public partial class Contest
     {
         public int ContestId { get; set; }
         public int? ContestTypeId { get; set; }
@@ -11,7 +11,7 @@ namespace DogShowAPI.Models
         public DateTime? EndDate { get; set; }
         public int? PlaceId { get; set; }
 
-        public ContestTypes ContestType { get; set; }
-        public Places Place { get; set; }
+        public ContestType ContestType { get; set; }
+        public Place Place { get; set; }
     }
 }

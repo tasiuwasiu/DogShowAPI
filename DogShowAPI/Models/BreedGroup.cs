@@ -3,17 +3,17 @@ using System.Collections.Generic;
 
 namespace DogShowAPI.Models
 {
-    public partial class BreedGroups
+    public partial class BreedGroup
     {
-        public BreedGroups()
+        public BreedGroup()
         {
-            BreedSections = new HashSet<BreedSections>();
+            BreedSection = new HashSet<BreedSection>();
         }
 
         public int GroupId { get; set; }
         public string NamePolish { get; set; }
         public string NameEnglish { get; set; }
 
-        public ICollection<BreedSections> BreedSections { get; set; }
+        public ICollection<BreedSection> BreedSection { get; set; }
     }
 }

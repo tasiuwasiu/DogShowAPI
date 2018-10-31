@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DogShowAPI.Models
 {
-    public partial class Dogs
+    public partial class Dog
     {
         public int DogId { get; set; }
         public string Name { get; set; }
@@ -21,6 +21,6 @@ namespace DogShowAPI.Models
         public int? ClassId { get; set; }
         public int OwnerId { get; set; }
 
-        public Users Owner { get; set; }
+        public User Owner { get; set; }
     }
 }

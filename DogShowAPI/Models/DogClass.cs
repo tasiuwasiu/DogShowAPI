@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DogShowAPI.Models
 {
-    public partial class DogClasses
+    public partial class DogClass
     {
         public int ClassId { get; set; }
         public string NamePolish { get; set; }

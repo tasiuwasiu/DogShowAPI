@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using DogShowAPI.Models;
+using DogShowAPI.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -28,11 +30,15 @@ namespace DogShowAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            
+            
+            services.AddDbContextPool<DogShowContext>(options => options.UseMySql(
+               Configuration.GetConnectionString("DefaultConnection"), 
+               mysqlOptions => { mysqlOptions.ServerVersion(new Version(), ServerType.MySql); }
+               ));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            services.AddDbContextPool<DOGSHOWContext>(options => options.UseMySql(
-                Configuration.GetConnectionString("DefaultConnection"), 
-                mysqlOptions => { mysqlOptions.ServerVersion(new Version(), ServerType.MySql); }
-                ));    
+            services.AddAutoMapper();
+            services.AddScoped<IUserService, UserService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

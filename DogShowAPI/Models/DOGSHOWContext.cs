@@ -1,51 +1,52 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.Extensions.Configuration;
+
 namespace DogShowAPI.Models
 {
-    public partial class DOGSHOWContext : DbContext
+    public partial class DogShowContext : DbContext
     {
-        public DOGSHOWContext()
-        {
-        }
+        //public DogShowContext()
+        //{
+        //}
 
-        public DOGSHOWContext(DbContextOptions<DOGSHOWContext> options)
+        public DogShowContext(DbContextOptions<DogShowContext> options)
             : base(options)
         {
         }
 
-        public virtual DbSet<AllowedBreedsContests> AllowedBreedsContests { get; set; }
-        public virtual DbSet<AppSettings> AppSettings { get; set; }
-        public virtual DbSet<BreedGroups> BreedGroups { get; set; }
-        public virtual DbSet<BreedSections> BreedSections { get; set; }
-        public virtual DbSet<Contests> Contests { get; set; }
-        public virtual DbSet<ContestTypes> ContestTypes { get; set; }
-        public virtual DbSet<DogBreeds> DogBreeds { get; set; }
-        public virtual DbSet<DogClasses> DogClasses { get; set; }
-        public virtual DbSet<Dogs> Dogs { get; set; }
-        public virtual DbSet<Grades> Grades { get; set; }
+        public virtual DbSet<AllowedBreedsContest> AllowedBreedsContest { get; set; }
+        public virtual DbSet<AppSetting> AppSetting { get; set; }
+        public virtual DbSet<BreedGroup> BreedGroup { get; set; }
+        public virtual DbSet<BreedSection> BreedSection { get; set; }
+        public virtual DbSet<Contest> Contest { get; set; }
+        public virtual DbSet<ContestType> ContestType { get; set; }
+        public virtual DbSet<Dog> Dog { get; set; }
+        public virtual DbSet<DogBreed> DogBreed { get; set; }
+        public virtual DbSet<DogClass> DogClass { get; set; }
+        public virtual DbSet<Grade> Grade { get; set; }
         public virtual DbSet<Participation> Participation { get; set; }
-        public virtual DbSet<Places> Places { get; set; }
-        public virtual DbSet<Users> Users { get; set; }
-        public virtual DbSet<UsersPermissions> UsersPermissions { get; set; }
+        public virtual DbSet<Place> Place { get; set; }
+        public virtual DbSet<User> User { get; set; }
+        public virtual DbSet<UsersPermission> UsersPermission { get; set; }
         public virtual DbSet<UsersSecurity> UsersSecurity { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseMySql("");
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
+                optionsBuilder.UseMySql("server=localhost;port=3306;user=root;password=root;database=DOGSHOW");
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<AllowedBreedsContests>(entity =>
+            modelBuilder.Entity<AllowedBreedsContest>(entity =>
             {
                 entity.HasKey(e => new { e.ContestTypeId, e.BreedTypeId });
 
-                entity.ToTable("allowed_breeds_contests");
+                entity.ToTable("allowed_breeds_contest");
 
                 entity.HasIndex(e => e.BreedTypeId)
                     .HasName("allowed_breeds_contests_dog_breeds_BREED_ID_fk");
@@ -57,19 +58,13 @@ namespace DogShowAPI.Models
                 entity.Property(e => e.BreedTypeId)
                     .HasColumnName("BREED_TYPE_ID")
                     .HasColumnType("int(11)");
-
-                entity.HasOne(d => d.BreedType)
-                    .WithMany(p => p.AllowedBreedsContests)
-                    .HasForeignKey(d => d.BreedTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("allowed_breeds_contests_dog_breeds_BREED_ID_fk");
             });
 
-            modelBuilder.Entity<AppSettings>(entity =>
+            modelBuilder.Entity<AppSetting>(entity =>
             {
                 entity.HasKey(e => e.SettingId);
 
-                entity.ToTable("app_settings");
+                entity.ToTable("app_setting");
 
                 entity.HasIndex(e => e.SettingId)
                     .HasName("app_settings_SETTING_ID_uindex")
@@ -87,17 +82,21 @@ namespace DogShowAPI.Models
                     .HasColumnName("SETTING_DATA")
                     .HasColumnType("blob");
 
+                entity.Property(e => e.SettingValue)
+                    .HasColumnName("SETTING_VALUE")
+                    .HasColumnType("json");
+
                 entity.Property(e => e.SettingName)
                     .IsRequired()
                     .HasColumnName("SETTING_NAME")
                     .HasColumnType("varchar(255)");
             });
 
-            modelBuilder.Entity<BreedGroups>(entity =>
+            modelBuilder.Entity<BreedGroup>(entity =>
             {
                 entity.HasKey(e => e.GroupId);
 
-                entity.ToTable("breed_groups");
+                entity.ToTable("breed_group");
 
                 entity.HasIndex(e => e.GroupId)
                     .HasName("breed_groups_GROUP_ID_uindex")
@@ -116,11 +115,11 @@ namespace DogShowAPI.Models
                     .HasColumnType("varchar(255)");
             });
 
-            modelBuilder.Entity<BreedSections>(entity =>
+            modelBuilder.Entity<BreedSection>(entity =>
             {
                 entity.HasKey(e => e.SectionId);
 
-                entity.ToTable("breed_sections");
+                entity.ToTable("breed_section");
 
                 entity.HasIndex(e => e.GroupNumber)
                     .HasName("breed_sections_breed_groups_GROUP_ID_fk");
@@ -150,16 +149,14 @@ namespace DogShowAPI.Models
                     .HasColumnType("int(11)");
 
                 entity.HasOne(d => d.GroupNumberNavigation)
-                    .WithMany(p => p.BreedSections)
+                    .WithMany(p => p.BreedSection)
                     .HasForeignKey(d => d.GroupNumber)
                     .HasConstraintName("breed_sections_breed_groups_GROUP_ID_fk");
             });
 
-            modelBuilder.Entity<Contests>(entity =>
+            modelBuilder.Entity<Contest>(entity =>
             {
-                entity.HasKey(e => e.ContestId);
-
-                entity.ToTable("contests");
+                entity.ToTable("contest");
 
                 entity.HasIndex(e => e.ContestId)
                     .HasName("contests_CONTEST_ID_uindex")
@@ -192,21 +189,19 @@ namespace DogShowAPI.Models
                     .HasColumnType("datetime");
 
                 entity.HasOne(d => d.ContestType)
-                    .WithMany(p => p.Contests)
+                    .WithMany(p => p.Contest)
                     .HasForeignKey(d => d.ContestTypeId)
                     .HasConstraintName("contests_contest_types_CONTEST_TYPE_ID_fk");
 
                 entity.HasOne(d => d.Place)
-                    .WithMany(p => p.Contests)
+                    .WithMany(p => p.Contest)
                     .HasForeignKey(d => d.PlaceId)
                     .HasConstraintName("contests_places_PLACE_ID_fk");
             });
 
-            modelBuilder.Entity<ContestTypes>(entity =>
+            modelBuilder.Entity<ContestType>(entity =>
             {
-                entity.HasKey(e => e.ContestTypeId);
-
-                entity.ToTable("contest_types");
+                entity.ToTable("contest_type");
 
                 entity.HasIndex(e => e.ContestTypeId)
                     .HasName("contest_types_CONTEST_TYPE_ID_uindex")
@@ -230,64 +225,9 @@ namespace DogShowAPI.Models
                     .HasColumnType("varchar(255)");
             });
 
-            modelBuilder.Entity<DogBreeds>(entity =>
+            modelBuilder.Entity<Dog>(entity =>
             {
-                entity.HasKey(e => e.BreedId);
-
-                entity.ToTable("dog_breeds");
-
-                entity.HasIndex(e => e.BreedId)
-                    .HasName("DOG_BREEDS_BREED_ID_uindex")
-                    .IsUnique();
-
-                entity.HasIndex(e => e.SectionId)
-                    .HasName("dog_breeds_breed_sections_SECTION_ID_fk");
-
-                entity.Property(e => e.BreedId)
-                    .HasColumnName("BREED_ID")
-                    .HasColumnType("int(11)");
-
-                entity.Property(e => e.NameEnglish)
-                    .HasColumnName("NAME_ENGLISH")
-                    .HasColumnType("varchar(255)");
-
-                entity.Property(e => e.NamePolish)
-                    .HasColumnName("NAME_POLISH")
-                    .HasColumnType("varchar(255)");
-
-                entity.Property(e => e.SectionId)
-                    .HasColumnName("SECTION_ID")
-                    .HasColumnType("int(11)");
-            });
-
-            modelBuilder.Entity<DogClasses>(entity =>
-            {
-                entity.HasKey(e => e.ClassId);
-
-                entity.ToTable("dog_classes");
-
-                entity.HasIndex(e => e.ClassId)
-                    .HasName("dog_classes_CLASS_ID_uindex")
-                    .IsUnique();
-
-                entity.Property(e => e.ClassId)
-                    .HasColumnName("CLASS_ID")
-                    .HasColumnType("int(11)");
-
-                entity.Property(e => e.NameEnglish)
-                    .HasColumnName("NAME_ENGLISH")
-                    .HasColumnType("varchar(30)");
-
-                entity.Property(e => e.NamePolish)
-                    .HasColumnName("NAME_POLISH")
-                    .HasColumnType("varchar(30)");
-            });
-
-            modelBuilder.Entity<Dogs>(entity =>
-            {
-                entity.HasKey(e => e.DogId);
-
-                entity.ToTable("dogs");
+                entity.ToTable("dog");
 
                 entity.HasIndex(e => e.BreedId)
                     .HasName("dogs_dog_breeds_BREED_ID_fk");
@@ -370,17 +310,68 @@ namespace DogShowAPI.Models
                     .HasColumnType("varchar(255)");
 
                 entity.HasOne(d => d.Owner)
-                    .WithMany(p => p.Dogs)
+                    .WithMany(p => p.Dog)
                     .HasForeignKey(d => d.OwnerId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("dogs_users_USER_ID_fk");
             });
 
-            modelBuilder.Entity<Grades>(entity =>
+            modelBuilder.Entity<DogBreed>(entity =>
             {
-                entity.HasKey(e => e.GradeId);
+                entity.HasKey(e => e.BreedId);
 
-                entity.ToTable("grades");
+                entity.ToTable("dog_breed");
+
+                entity.HasIndex(e => e.BreedId)
+                    .HasName("DOG_BREEDS_BREED_ID_uindex")
+                    .IsUnique();
+
+                entity.HasIndex(e => e.SectionId)
+                    .HasName("dog_breeds_breed_sections_SECTION_ID_fk");
+
+                entity.Property(e => e.BreedId)
+                    .HasColumnName("BREED_ID")
+                    .HasColumnType("int(11)");
+
+                entity.Property(e => e.NameEnglish)
+                    .HasColumnName("NAME_ENGLISH")
+                    .HasColumnType("varchar(255)");
+
+                entity.Property(e => e.NamePolish)
+                    .HasColumnName("NAME_POLISH")
+                    .HasColumnType("varchar(255)");
+
+                entity.Property(e => e.SectionId)
+                    .HasColumnName("SECTION_ID")
+                    .HasColumnType("int(11)");
+            });
+
+            modelBuilder.Entity<DogClass>(entity =>
+            {
+                entity.HasKey(e => e.ClassId);
+
+                entity.ToTable("dog_class");
+
+                entity.HasIndex(e => e.ClassId)
+                    .HasName("dog_classes_CLASS_ID_uindex")
+                    .IsUnique();
+
+                entity.Property(e => e.ClassId)
+                    .HasColumnName("CLASS_ID")
+                    .HasColumnType("int(11)");
+
+                entity.Property(e => e.NameEnglish)
+                    .HasColumnName("NAME_ENGLISH")
+                    .HasColumnType("varchar(30)");
+
+                entity.Property(e => e.NamePolish)
+                    .HasColumnName("NAME_POLISH")
+                    .HasColumnType("varchar(30)");
+            });
+
+            modelBuilder.Entity<Grade>(entity =>
+            {
+                entity.ToTable("grade");
 
                 entity.HasIndex(e => e.GradeId)
                     .HasName("grades_GRADE_ID_uindex")
@@ -446,11 +437,9 @@ namespace DogShowAPI.Models
                     .HasColumnType("int(11)");
             });
 
-            modelBuilder.Entity<Places>(entity =>
+            modelBuilder.Entity<Place>(entity =>
             {
-                entity.HasKey(e => e.PlaceId);
-
-                entity.ToTable("places");
+                entity.ToTable("place");
 
                 entity.HasIndex(e => e.PlaceId)
                     .HasName("places_PLACE_ID_uindex")
@@ -465,11 +454,9 @@ namespace DogShowAPI.Models
                     .HasColumnType("varchar(255)");
             });
 
-            modelBuilder.Entity<Users>(entity =>
+            modelBuilder.Entity<User>(entity =>
             {
-                entity.HasKey(e => e.UserId);
-
-                entity.ToTable("users");
+                entity.ToTable("user");
 
                 entity.HasIndex(e => e.UserId)
                     .HasName("USERS_USER_ID_uindex")
@@ -496,11 +483,11 @@ namespace DogShowAPI.Models
                     .HasColumnType("varchar(30)");
             });
 
-            modelBuilder.Entity<UsersPermissions>(entity =>
+            modelBuilder.Entity<UsersPermission>(entity =>
             {
                 entity.HasKey(e => e.PermissionId);
 
-                entity.ToTable("users_permissions");
+                entity.ToTable("users_permission");
 
                 entity.Property(e => e.PermissionId)
                     .HasColumnName("PERMISSION_ID")
@@ -539,6 +526,12 @@ namespace DogShowAPI.Models
                 entity.Property(e => e.UserSalt)
                     .HasColumnName("USER_SALT")
                     .HasColumnType("varchar(255)");
+
+                entity.HasOne(d => d.PermissionLevelNavigation)
+                    .WithMany(p => p.UsersSecurity)
+                    .HasForeignKey(d => d.PermissionLevel)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("users_security_users_permission_PERMISSION_ID_fk");
 
                 entity.HasOne(d => d.User)
                     .WithOne(p => p.UsersSecurity)

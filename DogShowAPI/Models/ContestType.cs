@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace DogShowAPI.Models
 {
-    public partial class ContestTypes
+    public partial class ContestType
     {
-        public ContestTypes()
+        public ContestType()
         {
-            Contests = new HashSet<Contests>();
+            Contest = new HashSet<Contest>();
         }
 
         public int ContestTypeId { get; set; }
@@ -15,6 +15,6 @@ namespace DogShowAPI.Models
         public string NameEnglish { get; set; }
         public sbyte Enterable { get; set; }
 
-        public ICollection<Contests> Contests { get; set; }
+        public ICollection<Contest> Contest { get; set; }
     }
 }

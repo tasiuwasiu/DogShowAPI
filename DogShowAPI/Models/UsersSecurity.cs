@@ -10,6 +10,7 @@ namespace DogShowAPI.Models
         public string UserHash { get; set; }
         public int PermissionLevel { get; set; }
 
-        public Users User { get; set; }
+        public UsersPermission PermissionLevelNavigation { get; set; }
+        public User User { get; set; }
     }
 }

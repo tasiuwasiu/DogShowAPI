@@ -3,16 +3,16 @@ using System.Collections.Generic;
 
 namespace DogShowAPI.Models
 {
-    public partial class Places
+    public partial class Place
     {
-        public Places()
+        public Place()
         {
-            Contests = new HashSet<Contests>();
+            Contest = new HashSet<Contest>();
         }
 
         public int PlaceId { get; set; }
         public string Name { get; set; }
 
-        public ICollection<Contests> Contests { get; set; }
+        public ICollection<Contest> Contest { get; set; }
     }
 }

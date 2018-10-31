@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace DogShowAPI.Models
 {
-    public partial class Users
+    public partial class User
     {
-        public Users()
+        public User()
         {
-            Dogs = new HashSet<Dogs>();
+            Dog = new HashSet<Dog>();
         }
 
         public int UserId { get; set; }
@@ -17,6 +17,6 @@ namespace DogShowAPI.Models
         public string Email { get; set; }
 
         public UsersSecurity UsersSecurity { get; set; }
-        public ICollection<Dogs> Dogs { get; set; }
+        public ICollection<Dog> Dog { get; set; }
     }
 }
