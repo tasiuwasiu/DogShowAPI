@@ -6,9 +6,7 @@ namespace DogShowAPI.Models
 {
     public partial class DogShowContext : DbContext
     {
-        //public DogShowContext()
-        //{
-        //}
+
 
         public DogShowContext(DbContextOptions<DogShowContext> options)
             : base(options)
@@ -35,10 +33,10 @@ namespace DogShowAPI.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseMySql("server=localhost;port=3306;user=root;password=root;database=DOGSHOW");
+
             }
         }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -78,13 +76,11 @@ namespace DogShowAPI.Models
                     .HasColumnName("SETTING_ID")
                     .HasColumnType("int(11)");
 
+                //
+
                 entity.Property(e => e.SettingData)
                     .HasColumnName("SETTING_DATA")
                     .HasColumnType("blob");
-
-                entity.Property(e => e.SettingValue)
-                    .HasColumnName("SETTING_VALUE")
-                    .HasColumnType("json");
 
                 entity.Property(e => e.SettingName)
                     .IsRequired()
@@ -520,12 +516,14 @@ namespace DogShowAPI.Models
                     .HasColumnType("int(11)");
 
                 entity.Property(e => e.UserHash)
+                    .IsRequired()
                     .HasColumnName("USER_HASH")
-                    .HasColumnType("varchar(255)");
+                    .HasColumnType("blob");
 
                 entity.Property(e => e.UserSalt)
+                    .IsRequired()
                     .HasColumnName("USER_SALT")
-                    .HasColumnType("varchar(255)");
+                    .HasColumnType("blob");
 
                 entity.HasOne(d => d.PermissionLevelNavigation)
                     .WithMany(p => p.UsersSecurity)
