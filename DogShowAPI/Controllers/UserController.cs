@@ -42,11 +42,12 @@ namespace DogShowAPI.Controllers
         {
             var loggedUser = userService.Login(user.Email, user.Password);
 
-            if (user == null)
+            if (loggedUser == null)
                 return BadRequest(new { message = "Username or password is incorrect" });
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(securitySettings.Secret);
+            var issuer = securitySettings.Issuer;
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new Claim[]
@@ -54,20 +55,23 @@ namespace DogShowAPI.Controllers
                     new Claim(ClaimTypes.Name, loggedUser.UserId.ToString())
                 }),
                 Expires = DateTime.UtcNow.AddHours(2),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                Issuer = issuer,
+                Audience = issuer
+
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var tokenString = tokenHandler.WriteToken(token);
             int permissionLevel = userService.GetUserPermissionLevel(loggedUser.UserId);
             if (permissionLevel == -1)
                 return BadRequest(new { message = "db error" });
-            // return basic user info (without password) and token to store client side
             return Ok(new
             {
                 Id = loggedUser.UserId,
-                Email = loggedUser.Email,
-                FirstName = loggedUser.FirstName,
-                LastName = loggedUser.LastName,
+                loggedUser.Email,
+                loggedUser.FirstName,
+                loggedUser.LastName,
+                loggedUser.Address,
                 PermissionLevel = permissionLevel,
                 Token = tokenString
             });
@@ -131,6 +135,34 @@ namespace DogShowAPI.Controllers
             }
             else
                 return BadRequest(new { message = "Username or password is incorrect" });
+        }
+
+        [HttpPost("edit/{id}")]
+        public IActionResult EditUser(int id, [FromBody]UserDTO user)
+        {
+            var claimsIdentity = this.User.Identity as ClaimsIdentity;
+            var userName = claimsIdentity.FindFirst(ClaimTypes.Name)?.Value;
+            if (userName == null)
+            {
+                return BadRequest(new { message = "Username or password is incorrect" });
+            }
+            int userId = int.Parse(userName);
+            if (userId != id)
+            {
+                return Unauthorized();
+            }
+            User editedUser = new User
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Address = user.Address
+            };
+            User response = userService.Update(id, editedUser);
+            if (response == null)
+            {
+                return BadRequest(new { message = "Nie odnaleziono takiego użytkownika w bazie!" });
+            }
+            return Ok();
         }
 
         //[AllowAnonymous]

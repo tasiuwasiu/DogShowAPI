@@ -13,6 +13,7 @@ namespace DogShowAPI.Services
         User Create(User user, string password, int permissionLevel);
         User GetUserByID(int id);
         int GetUserPermissionLevel(int userId);
+        User Update(int userID, User newData);
     }
 
     public class UserService : IUserService
@@ -80,12 +81,26 @@ namespace DogShowAPI.Services
 
         public int GetUserPermissionLevel(int userId)
         {
-            UsersSecurity userS =context.UsersSecurity.Where(us => us.UserId == userId).FirstOrDefault();
+            UsersSecurity userS = context.UsersSecurity.Where(us => us.UserId == userId).FirstOrDefault();
 
             if (userS == null)
                 return -1;
 
             return userS.PermissionLevel;
+        }
+
+        public User Update (int userID, User newData)
+        {
+            User user = context.User.Where(u => u.UserId == userID).FirstOrDefault();
+            if (user == null)
+            {
+                return null;
+            }
+            user.FirstName = newData.FirstName;
+            user.LastName = newData.LastName;
+            user.Address = newData.Address;
+            context.SaveChanges();
+            return user;
         }
 
 
