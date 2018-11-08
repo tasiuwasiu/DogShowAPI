@@ -49,7 +49,6 @@ namespace DogShowAPI.Services
 
         public User Create(User user, string password, int permissionLevel)
         {
-            // validation
             if (string.IsNullOrWhiteSpace(password))
                 throw new AppException("Password is required");
 
