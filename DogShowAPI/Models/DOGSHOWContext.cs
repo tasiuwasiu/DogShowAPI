@@ -76,7 +76,9 @@ namespace DogShowAPI.Models
                     .HasColumnName("SETTING_ID")
                     .HasColumnType("int(11)");
 
-                //
+                entity.Property(e => e.SettingValue)
+                    .HasColumnName("SETTING_VALUE")
+                    .HasColumnType("json");
 
                 entity.Property(e => e.SettingData)
                     .HasColumnName("SETTING_DATA")

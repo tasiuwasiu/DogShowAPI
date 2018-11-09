@@ -7,6 +7,7 @@ namespace DogShowAPI.Models
     {
         public int SettingId { get; set; }
         public string SettingName { get; set; }
+        public string SettingValue { get; set; }
         public byte[] SettingData { get; set; }
     }
 }
