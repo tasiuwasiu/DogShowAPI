@@ -5,6 +5,11 @@ namespace DogShowAPI.Models
 {
     public partial class Dog
     {
+        public Dog()
+        {
+            Participation = new HashSet<Participation>();
+        }
+
         public int DogId { get; set; }
         public string Name { get; set; }
         public string LineageNumber { get; set; }
@@ -21,6 +26,9 @@ namespace DogShowAPI.Models
         public int? ClassId { get; set; }
         public int OwnerId { get; set; }
 
+        public DogBreed Breed { get; set; }
+        public DogClass Class { get; set; }
         public User Owner { get; set; }
+        public ICollection<Participation> Participation { get; set; }
     }
 }

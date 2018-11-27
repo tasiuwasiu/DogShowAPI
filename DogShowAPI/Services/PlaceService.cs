@@ -1,4 +1,5 @@
-﻿using DogShowAPI.Models;
+﻿using DogShowAPI.Helpers;
+using DogShowAPI.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace DogShowAPI.Services
         Place getPlace(int placeId);
         List<Place> getAllPlaces();
         Place editPlace(int placeId, Place newPlace);
+        void deletePlace(int placeId);
     }
 
     public class PlaceService : IPlaceService
@@ -45,11 +47,21 @@ namespace DogShowAPI.Services
             Place place = context.Place.Where(p => p.PlaceId == placeId).FirstOrDefault();
             if (place == null)
             {
-                return null;
+                throw new AppException("Nie odnaleziono miejsca");
             }
             place.Name = newPlace.Name;
             context.SaveChanges();
             return place;
+        }
+
+        public void deletePlace(int placeId)
+        {
+            Place place = context.Place.Where(p => p.PlaceId == placeId).FirstOrDefault();
+            if (place == null)
+            {
+                throw new AppException("Nie odnaleziono podanego miejsca");
+            }
+            context.Place.Remove(place);
         }
     }
 }

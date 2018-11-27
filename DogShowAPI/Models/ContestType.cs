@@ -7,7 +7,9 @@ namespace DogShowAPI.Models
     {
         public ContestType()
         {
+            AllowedBreedsContest = new HashSet<AllowedBreedsContest>();
             Contest = new HashSet<Contest>();
+            Participation = new HashSet<Participation>();
         }
 
         public int ContestTypeId { get; set; }
@@ -15,6 +17,8 @@ namespace DogShowAPI.Models
         public string NameEnglish { get; set; }
         public sbyte Enterable { get; set; }
 
+        public ICollection<AllowedBreedsContest> AllowedBreedsContest { get; set; }
         public ICollection<Contest> Contest { get; set; }
+        public ICollection<Participation> Participation { get; set; }
     }
 }

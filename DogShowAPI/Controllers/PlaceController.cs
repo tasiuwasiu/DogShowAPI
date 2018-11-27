@@ -33,94 +33,84 @@ namespace DogShowAPI.Controllers
         public IActionResult AddPlace([FromBody]Place newPlace)
         {
             var claimsIdentity = this.User.Identity as ClaimsIdentity;
-            var userName = claimsIdentity.FindFirst(ClaimTypes.Name)?.Value;
-            if (userName == null)
+            try
             {
-                return BadRequest(new { message = "Błąd autoryzacji" });
+                userService.IsUserAnOrganizator(claimsIdentity);
+                Place response = placeService.addPlace(newPlace);
+                if (response == null)
+                    throw new AppException("Błąd dodawania miejsca");
+                return Ok(response);
             }
-            int userId = int.Parse(userName);
-            int userPermissions = userService.GetUserPermissionLevel(userId);
-            if (userPermissions != 1 && userPermissions != 2)
+            catch (Exception e)
             {
-                return Unauthorized();
+                return BadRequest(new { message = e.Message });
             }
-
-            Place response = placeService.addPlace(newPlace);
-            if (response == null)
-            {
-                return BadRequest(new { message = "Błąd dodawania miejsca!" });
-            }
-            return Ok();
         }
 
         [HttpGet("{id}")]
         public IActionResult GetPlace(int id)
         {
             var claimsIdentity = this.User.Identity as ClaimsIdentity;
-            var userName = claimsIdentity.FindFirst(ClaimTypes.Name)?.Value;
-            if (userName == null)
+            try
             {
-                return BadRequest(new { message = "Błąd autoryzacji" });
+                userService.IsUserAnOrganizator(claimsIdentity);
+                Place response = placeService.getPlace(id);
+                if (response == null)
+                    throw new AppException("Brak miejsca o podanym id w bazie");
+                return Ok(response);
             }
-            int userId = int.Parse(userName);
-            int userPermissions = userService.GetUserPermissionLevel(userId);
-            if (userPermissions != 1 && userPermissions != 2)
+            catch (Exception e)
             {
-                return Unauthorized();
+                return BadRequest(new { message = e.Message });
             }
-
-            Place response = placeService.getPlace(id);
-            if (response == null)
-            {
-                return BadRequest(new { message = "Nie odnaleziono miejsca!" });
-            }
-            return Ok(response);
         }
 
         [HttpGet]
         public IActionResult GetAllPlaces()
         {
             var claimsIdentity = this.User.Identity as ClaimsIdentity;
-            var userName = claimsIdentity.FindFirst(ClaimTypes.Name)?.Value;
-            if (userName == null)
+            try
             {
-                return BadRequest(new { message = "Błąd autoryzacji" });
+                userService.IsUserAnOrganizator(claimsIdentity);
+                return Ok(placeService.getAllPlaces());
             }
-            int userId = int.Parse(userName);
-            int userPermissions = userService.GetUserPermissionLevel(userId);
-            if (userPermissions != 1 && userPermissions != 2)
+            catch (Exception e)
             {
-                return Unauthorized();
+                return BadRequest(new { message = e.Message });
             }
-
-            return Ok(placeService.getAllPlaces());
         }
 
         [HttpPut ("{id}")]
         public IActionResult EditPlace (int id, [FromBody]Place newPlace)
         {
             var claimsIdentity = this.User.Identity as ClaimsIdentity;
-            var userName = claimsIdentity.FindFirst(ClaimTypes.Name)?.Value;
-            if (userName == null)
+            try
             {
-                return BadRequest(new { message = "Błąd autoryzacji" });
+                userService.IsUserAnOrganizator(claimsIdentity);
+                var response = placeService.editPlace(id, newPlace);
+                return Ok(response);
             }
-            int userId = int.Parse(userName);
-            int userPermissions = userService.GetUserPermissionLevel(userId);
-            if (userPermissions != 1 && userPermissions != 2)
+            catch (Exception e)
             {
-                return Unauthorized();
+                return BadRequest(new { message = e.Message });
             }
-
-            Place response = placeService.editPlace(id, newPlace);
-
-            if (response == null)
-            {
-                return BadRequest(new { message = "Nie odnaleziono miejsca!" });
-            }
-            return Ok(response);
         }
 
+        [HttpDelete ("{id}")]
+        public IActionResult DeletePlace (int id)
+        {
+            var claimsIdentity = this.User.Identity as ClaimsIdentity;
+            try
+            {
+                userService.IsUserAnOrganizator(claimsIdentity);
+                placeService.deletePlace(id);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
 
     }
 }

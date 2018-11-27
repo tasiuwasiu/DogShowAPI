@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using DogShowAPI.Helpers;
 using DogShowAPI.Models;
@@ -14,6 +15,8 @@ namespace DogShowAPI.Services
         User GetUserByID(int id);
         int GetUserPermissionLevel(int userId);
         User Update(int userID, User newData);
+        bool IsUserAnOrganizator(ClaimsIdentity identity);
+        bool CanUserAccessDog(ClaimsIdentity identity, int dogId);
     }
 
     public class UserService : IUserService
@@ -102,6 +105,22 @@ namespace DogShowAPI.Services
             return user;
         }
 
+        public bool IsUserAnOrganizator(ClaimsIdentity identity)
+        {
+            var userName = identity.FindFirst(ClaimTypes.Name)?.Value;
+            if (userName == null)
+            {
+                throw new AppException("Błąd autoryzacji");
+            }
+            int userId = int.Parse(userName);
+            int userPermissions = GetUserPermissionLevel(userId);
+            if (userPermissions != 1 && userPermissions != 2)
+            {
+                throw new AppException("Brak uprawnień do wykonania akcji");
+            }
+            return true;
+        }
+
 
         private static void GenerateHashSalt(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
@@ -127,6 +146,28 @@ namespace DogShowAPI.Services
                 {
                     return false;
                 }
+            }
+            return true;
+        }
+
+
+        public bool CanUserAccessDog(ClaimsIdentity identity, int dogId)
+        {
+            var userName = identity.FindFirst(ClaimTypes.Name)?.Value;
+            if (userName == null)
+            {
+                throw new AppException("Błąd autoryzacji");
+            }
+            int userId = int.Parse(userName);
+            var dog = context.Dog.Where(d => d.DogId == dogId).FirstOrDefault();
+            if (dog == null)
+                throw new AppException("Nie odnaleziono psa o podanym ID");
+            if (dog.OwnerId == userId)
+                return true;
+            int userPermissions = GetUserPermissionLevel(userId);
+            if (userPermissions != 1 && userPermissions != 2)
+            {
+                throw new AppException("Brak uprawnień do wykonania akcji");
             }
             return true;
         }

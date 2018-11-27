@@ -7,7 +7,6 @@ namespace DogShowAPI.Models
     public partial class DogShowContext : DbContext
     {
 
-
         public DogShowContext(DbContextOptions<DogShowContext> options)
             : base(options)
         {
@@ -33,10 +32,8 @@ namespace DogShowAPI.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-
             }
         }
-
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -47,7 +44,7 @@ namespace DogShowAPI.Models
                 entity.ToTable("allowed_breeds_contest");
 
                 entity.HasIndex(e => e.BreedTypeId)
-                    .HasName("allowed_breeds_contests_dog_breeds_BREED_ID_fk");
+                    .HasName("allowedbreedscontest_dogbreed_BREED_ID_fk");
 
                 entity.Property(e => e.ContestTypeId)
                     .HasColumnName("CONTEST_TYPE_ID")
@@ -56,6 +53,18 @@ namespace DogShowAPI.Models
                 entity.Property(e => e.BreedTypeId)
                     .HasColumnName("BREED_TYPE_ID")
                     .HasColumnType("int(11)");
+
+                entity.HasOne(d => d.BreedType)
+                    .WithMany(p => p.AllowedBreedsContest)
+                    .HasForeignKey(d => d.BreedTypeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("allowedbreedscontest_dogbreed_BREED_ID_fk");
+
+                entity.HasOne(d => d.ContestType)
+                    .WithMany(p => p.AllowedBreedsContest)
+                    .HasForeignKey(d => d.ContestTypeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("allowedbreedscontest_contesttype_CONTEST_TYPE_ID_fk");
             });
 
             modelBuilder.Entity<AppSetting>(entity =>
@@ -228,14 +237,14 @@ namespace DogShowAPI.Models
                 entity.ToTable("dog");
 
                 entity.HasIndex(e => e.BreedId)
-                    .HasName("dogs_dog_breeds_BREED_ID_fk");
+                    .HasName("dog_dogbreed_BREED_ID_fk");
 
                 entity.HasIndex(e => e.ChipNumber)
                     .HasName("dogs_CHIP_NUMBER_uindex")
                     .IsUnique();
 
                 entity.HasIndex(e => e.ClassId)
-                    .HasName("dogs_dog_classes_CLASS_ID_fk");
+                    .HasName("dog_dogclass_CLASS_ID_fk");
 
                 entity.HasIndex(e => e.DogId)
                     .HasName("dogs_DOG_ID_uindex")
@@ -307,6 +316,17 @@ namespace DogShowAPI.Models
                     .HasColumnName("TITLES")
                     .HasColumnType("varchar(255)");
 
+                entity.HasOne(d => d.Breed)
+                    .WithMany(p => p.Dog)
+                    .HasForeignKey(d => d.BreedId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("dog_dogbreed_BREED_ID_fk");
+
+                entity.HasOne(d => d.Class)
+                    .WithMany(p => p.Dog)
+                    .HasForeignKey(d => d.ClassId)
+                    .HasConstraintName("dog_dogclass_CLASS_ID_fk");
+
                 entity.HasOne(d => d.Owner)
                     .WithMany(p => p.Dog)
                     .HasForeignKey(d => d.OwnerId)
@@ -342,6 +362,11 @@ namespace DogShowAPI.Models
                 entity.Property(e => e.SectionId)
                     .HasColumnName("SECTION_ID")
                     .HasColumnType("int(11)");
+
+                entity.HasOne(d => d.Section)
+                    .WithMany(p => p.DogBreed)
+                    .HasForeignKey(d => d.SectionId)
+                    .HasConstraintName("dogbreed_breedsection_SECTION_ID_fk");
             });
 
             modelBuilder.Entity<DogClass>(entity =>
@@ -402,13 +427,13 @@ namespace DogShowAPI.Models
                 entity.ToTable("participation");
 
                 entity.HasIndex(e => e.ContestId)
-                    .HasName("participation_contests_CONTEST_ID_fk");
+                    .HasName("participation_contesttype_CONTEST_ID_fk");
 
                 entity.HasIndex(e => e.DogId)
-                    .HasName("participation_dogs_DOG_ID_fk");
+                    .HasName("participation_dog_OG_ID_fk");
 
                 entity.HasIndex(e => e.GradeId)
-                    .HasName("participation_grades_GRADE_ID_fk");
+                    .HasName("participation_grade_GRADE_ID_fk");
 
                 entity.HasIndex(e => e.ParticipationId)
                     .HasName("participation_PARTICIPATION_ID_uindex")
@@ -433,6 +458,23 @@ namespace DogShowAPI.Models
                 entity.Property(e => e.Place)
                     .HasColumnName("PLACE")
                     .HasColumnType("int(11)");
+
+                entity.HasOne(d => d.Contest)
+                    .WithMany(p => p.Participation)
+                    .HasForeignKey(d => d.ContestId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("participation_contesttype_CONTEST_ID_fk");
+
+                entity.HasOne(d => d.Dog)
+                    .WithMany(p => p.Participation)
+                    .HasForeignKey(d => d.DogId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("participation_dog_OG_ID_fk");
+
+                entity.HasOne(d => d.Grade)
+                    .WithMany(p => p.Participation)
+                    .HasForeignKey(d => d.GradeId)
+                    .HasConstraintName("participation_grade_GRADE_ID_fk");
             });
 
             modelBuilder.Entity<Place>(entity =>

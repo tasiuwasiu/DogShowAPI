@@ -43,7 +43,7 @@ namespace DogShowAPI.Controllers
             var loggedUser = userService.Login(user.Email, user.Password);
 
             if (loggedUser == null)
-                return BadRequest(new { message = "Username or password is incorrect" });
+                return BadRequest(new { message = "Nieprawidłowe dane logowania" });
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(securitySettings.Secret);
@@ -64,7 +64,7 @@ namespace DogShowAPI.Controllers
             var tokenString = tokenHandler.WriteToken(token);
             int permissionLevel = userService.GetUserPermissionLevel(loggedUser.UserId);
             if (permissionLevel == -1)
-                return BadRequest(new { message = "db error" });
+                return BadRequest(new { message = "Błąd bazy danych" });
             return Ok(new
             {
                 Id = loggedUser.UserId,
@@ -91,13 +91,11 @@ namespace DogShowAPI.Controllers
 
             try
             {
-                // save 
                 userService.Create(newUser, user.Password, 4);
                 return Ok();
             }
             catch (AppException ex)
             {
-                // return error message if there was an exception
                 return BadRequest(new { message = ex.Message });
             }
         }
@@ -109,7 +107,7 @@ namespace DogShowAPI.Controllers
             var userName = claimsIdentity.FindFirst(ClaimTypes.Name)?.Value;
             if (userName == null)
             {
-                return BadRequest(new { message = "Username or password is incorrect" });
+                return BadRequest(new { message = "Błąd autoryzacji"});
             }
             int userId = int.Parse(userName);
             int permissionLevel = userService.GetUserPermissionLevel(userId);
@@ -134,7 +132,7 @@ namespace DogShowAPI.Controllers
                 }
             }
             else
-                return BadRequest(new { message = "Username or password is incorrect" });
+                return BadRequest(new { message = "Błąd autoryzacji" });
         }
 
         [HttpPost("edit/{id}")]
@@ -144,7 +142,7 @@ namespace DogShowAPI.Controllers
             var userName = claimsIdentity.FindFirst(ClaimTypes.Name)?.Value;
             if (userName == null)
             {
-                return BadRequest(new { message = "Username or password is incorrect" });
+                return BadRequest(new { message = "Błąd autoryzacji" });
             }
             int userId = int.Parse(userName);
             if (userId != id)
@@ -164,30 +162,5 @@ namespace DogShowAPI.Controllers
             }
             return Ok();
         }
-
-        //[AllowAnonymous]
-        //[HttpGet("testadmin")]
-        //public IActionResult TestAdmin()
-        //{
-        //    User newUser = new User
-        //    {
-        //        FirstName = "Admin",
-        //        LastName = "Admin",
-        //        Address = "",
-        //        Email = "administrator"
-        //    };
-
-        //    try
-        //    {
-        //        // save 
-        //        userService.Create(newUser, "admin", 1);
-        //        return Ok();
-        //    }
-        //    catch (AppException ex)
-        //    {
-        //        // return error message if there was an exception
-        //        return BadRequest(new { message = ex.Message });
-        //    }
-        //}
     }
 }
