@@ -220,7 +220,7 @@ namespace DogShowAPI.Models
 
                 entity.Property(e => e.Enterable)
                     .HasColumnName("ENTERABLE")
-                    .HasColumnType("tinyint(1)")
+                    .HasColumnType("bit")
                     .HasDefaultValueSql("'1'");
 
                 entity.Property(e => e.NameEnglish)
@@ -406,7 +406,7 @@ namespace DogShowAPI.Models
 
                 entity.Property(e => e.ForPuppies)
                     .HasColumnName("FOR_PUPPIES")
-                    .HasColumnType("tinyint(1)");
+                    .HasColumnType("bit");
 
                 entity.Property(e => e.GradeLevel)
                     .HasColumnName("GRADE_LEVEL")

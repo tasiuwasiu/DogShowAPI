@@ -14,7 +14,7 @@ namespace DogShowAPI.Models
         public int GradeLevel { get; set; }
         public string NamePolish { get; set; }
         public string NameEnglish { get; set; }
-        public sbyte ForPuppies { get; set; }
+        public bool ForPuppies { get; set; }
 
         public ICollection<Participation> Participation { get; set; }
     }

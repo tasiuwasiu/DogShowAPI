@@ -103,36 +103,25 @@ namespace DogShowAPI.Controllers
         [HttpPost("addJudge")]
         public IActionResult AddJudge([FromBody]UserDTO user)
         {
-            var claimsIdentity = this.User.Identity as ClaimsIdentity;
-            var userName = claimsIdentity.FindFirst(ClaimTypes.Name)?.Value;
-            if (userName == null)
+            User newUser = new User
             {
-                return BadRequest(new { message = "Błąd autoryzacji"});
-            }
-            int userId = int.Parse(userName);
-            int permissionLevel = userService.GetUserPermissionLevel(userId);
-            if (permissionLevel == 1 || permissionLevel == 2)
-            {
-                User newUser = new User
-                {
-                    FirstName = user.FirstName,
-                    LastName = user.LastName,
-                    Address = user.Address,
-                    Email = user.Email
-                };
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Address = user.Address,
+                Email = user.Email
+            };
 
-                try
-                {
-                    userService.Create(newUser, user.Password, 3);
-                    return Ok();
-                }
-                catch (AppException ex)
-                {
-                    return BadRequest(new { message = ex.Message });
-                }
+            var claimsIdentity = this.User.Identity as ClaimsIdentity;
+            try
+            {
+                userService.IsUserAnOrganizator(claimsIdentity);
+                userService.Create(newUser, user.Password, 3);
+                return Ok();
             }
-            else
-                return BadRequest(new { message = "Błąd autoryzacji" });
+            catch (AppException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost("edit/{id}")]

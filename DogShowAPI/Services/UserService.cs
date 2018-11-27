@@ -121,7 +121,6 @@ namespace DogShowAPI.Services
             return true;
         }
 
-
         private static void GenerateHashSalt(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
             if (password == null) throw new ArgumentNullException("password");
@@ -150,14 +149,11 @@ namespace DogShowAPI.Services
             return true;
         }
 
-
         public bool CanUserAccessDog(ClaimsIdentity identity, int dogId)
         {
             var userName = identity.FindFirst(ClaimTypes.Name)?.Value;
             if (userName == null)
-            {
                 throw new AppException("Błąd autoryzacji");
-            }
             int userId = int.Parse(userName);
             var dog = context.Dog.Where(d => d.DogId == dogId).FirstOrDefault();
             if (dog == null)

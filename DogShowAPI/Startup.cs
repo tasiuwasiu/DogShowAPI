@@ -18,6 +18,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace DogShowAPI
@@ -34,7 +36,9 @@ namespace DogShowAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
-            
+            services.AddMvc().AddJsonOptions(options => {
+                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            });
             services.AddDbContextPool<DogShowContext>(options => options.UseMySql(
                Configuration.GetConnectionString("DefaultConnection"), 
                mysqlOptions => { mysqlOptions.ServerVersion(new Version(), ServerType.MySql); }
@@ -44,6 +48,7 @@ namespace DogShowAPI
             services.AddScoped<IDogService, DogService>();
             services.AddScoped<IAppSettingsService, AppSettingsService>();
             services.AddScoped<IPlaceService, PlaceService>();
+            services.AddScoped<IContestService, ContestService>();
 
             var securitySettingsSection = Configuration.GetSection("SecuritySettings");
             services.Configure<SecuritySettings>(securitySettingsSection);

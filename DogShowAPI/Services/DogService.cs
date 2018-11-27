@@ -1,4 +1,5 @@
-﻿using DogShowAPI.Helpers;
+﻿using DogShowAPI.DTOs;
+using DogShowAPI.Helpers;
 using DogShowAPI.Models;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,7 @@ namespace DogShowAPI.Services
         List<DogClass> getClasses();
         void deleteDog(int dogId);
         Dog getDogById(int dogId);
+        DogDetailsDTO getDogDetailsById(int dogId);
     }
 
 
@@ -73,6 +75,17 @@ namespace DogShowAPI.Services
         public Dog getDogById (int dogId)
         {
             return context.Dog.Where(d => d.DogId == dogId).FirstOrDefault();
+        }
+
+        public DogDetailsDTO getDogDetailsById(int dogId)
+        {
+            DogDetailsDTO dogDetails = new DogDetailsDTO
+            {
+
+            };
+
+
+            return dogDetails;
         }
     }
 }
