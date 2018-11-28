@@ -97,5 +97,35 @@ namespace DogShowAPI.Controllers
                 return BadRequest(new { message = e.Message });
             }
         }
-    }
+
+        [HttpGet("getAvailableByBreed/{breedId}")]
+        public IActionResult getAvailableByBreed(int breedId)
+        {
+            try
+            {
+                var response = contestService.getContestsByBreed(breedId);
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+
+        }
+
+        [HttpGet("getNotPlanned")]
+        public IActionResult getNotPlanned()
+        {
+            var claimsIdentity = this.User.Identity as ClaimsIdentity;
+            try
+            {
+                userService.IsUserAnOrganizator(claimsIdentity);
+                var response = contestService.getNotPlanned();
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
 }

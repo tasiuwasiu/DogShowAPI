@@ -14,6 +14,8 @@ namespace DogShowAPI.Services
         ContestType addContest(ContestType newContest);
         void addAllowedBreeds(List<AllowedBreedsContest> allowedBreeds);
         List<ContestInfoDTO> getAll();
+        List<ContestInfoDTO> getContestsByBreed(int breedId);
+        List<ContestInfoDTO> getNotPlanned();
     }
 
     public class ContestService : IContestService
@@ -142,5 +144,65 @@ namespace DogShowAPI.Services
             return response;
         }
 
+
+        public List<ContestInfoDTO> getContestsByBreed(int breedId)
+        {
+            List<ContestInfoDTO> contests = new List<ContestInfoDTO>();
+            List<AllowedBreedsContest> allowed = context.AllowedBreedsContest.Where(abc => abc.BreedTypeId == breedId).ToList();
+            foreach (AllowedBreedsContest allowedBreedsContest in allowed)
+            {
+                if (allowedBreedsContest.ContestType.Enterable)
+                {
+                    if(allowedBreedsContest.ContestType.Contest.Count >1)
+                    {
+                        contests.Add(new ContestInfoDTO
+                        {
+                            contestId = allowedBreedsContest.ContestType.Contest.First().ContestId,
+                            contestTypeId = allowedBreedsContest.ContestTypeId,
+                            name = allowedBreedsContest.ContestType.NamePolish,
+                            placeName = allowedBreedsContest.ContestType.Contest.First().Place.Name,
+                            startDate = allowedBreedsContest.ContestType.Contest.First().StartDate,
+                            endDate = allowedBreedsContest.ContestType.Contest.First().EndDate
+                        });
+                    }
+                    else
+                    {
+                        contests.Add(new ContestInfoDTO
+                        {
+                            contestId = -1,
+                            contestTypeId = allowedBreedsContest.ContestTypeId,
+                            name = allowedBreedsContest.ContestType.NamePolish,
+                            placeName = null,
+                            startDate = new DateTime(),
+                            endDate = new DateTime()
+                        });
+                    }
+                }
+            }
+            if (contests.Count < 1)
+                throw new AppException("Nie odnaleziono konkursów dla danej rasy");
+            return contests;
+        }
+
+        public List<ContestInfoDTO> getNotPlanned()
+        {
+            List<ContestInfoDTO> notPlannedContests = new List<ContestInfoDTO>();
+            List<ContestType> contests = context.ContestType.Where(ct => ct.Contest.Count == 0).ToList();
+            foreach (ContestType contest in contests)
+            {
+                notPlannedContests.Add(new ContestInfoDTO
+                {
+                    contestId = -1,
+                    contestTypeId = c.ContestTypeId,
+                    name = c.NamePolish,
+                    placeName = null,
+                    startDate = new DateTime(),
+                    endDate = new DateTime()
+                });
+            }
+            if (notPlannedContests.Count < 1)
+                throw new AppException("Brak niezaplanowanych konkursów");
+            return notPlannedContests;
+        }
     }
 }
