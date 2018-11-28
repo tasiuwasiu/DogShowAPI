@@ -42,24 +42,49 @@ namespace DogShowAPI.Services
                 throw new AppException("Nie odnaleziono konkursu o podanym id");
 
             List<BreedInfoDTO> allowedBreeds = new List<BreedInfoDTO>();
-            foreach (AllowedBreedsContest abc in contestType.AllowedBreedsContest)
+            List<AllowedBreedsContest> allowed = context.AllowedBreedsContest.Where(abc => abc.ContestTypeId == id).ToList();
+            foreach (AllowedBreedsContest abc in allowed)
             {
+                DogBreed breed = context.DogBreed.Where(db => db.BreedId == abc.BreedTypeId).FirstOrDefault();
                 allowedBreeds.Add(new BreedInfoDTO
                 {
                     breedId = abc.BreedTypeId,
-                    name = abc.BreedType.NamePolish
+                    name = breed.NamePolish
                 });
             }
 
             List<ParticipationInfoDTO> participations = new List<ParticipationInfoDTO>();
-            foreach (Participation p in contestType.Participation)
+            List<Participation> part = context.Participation.Where(p => p.ContestId == id).ToList();
+            foreach (Participation p in part)
             {
-                participations.Add(new ParticipationInfoDTO
+                Dog dog = context.Dog.Where(d => d.DogId == p.DogId).FirstOrDefault();
+                DogBreed breed = context.DogBreed.Where(db => db.BreedId == dog.BreedId).FirstOrDefault();
+                Grade grade = context.Grade.Where(g => g.GradeId == p.GradeId).FirstOrDefault();
+                string place = (p.Place == null) ? "Nie przyznano" : p.Place.ToString();
+                if (grade == null)
                 {
-                    dogId = p.DogId,
-                    name = p.Dog.Name,
-                    breedName = p.Dog.Breed.NamePolish
-                });
+                    participations.Add(new ParticipationInfoDTO
+                    {
+                        dogId = p.DogId,
+                        name = dog.Name,
+                        breedName = breed.NamePolish,
+                        chipNumber = dog.ChipNumber,
+                        grade = "Nie oceniono",
+                        place = place
+                    });
+                }
+                else
+                {
+                    participations.Add(new ParticipationInfoDTO
+                    {
+                        dogId = p.DogId,
+                        name = dog.Name,
+                        breedName = breed.NamePolish,
+                        chipNumber = dog.ChipNumber,
+                        grade = grade.NamePolish,
+                        place = place
+                    });
+                }
             }
 
             Contest contest = context.Contest.Where(c => c.ContestTypeId == id).FirstOrDefault();
@@ -81,6 +106,7 @@ namespace DogShowAPI.Services
             }
             else
             {
+                Place place = context.Place.Where(p => p.PlaceId == contest.PlaceId).FirstOrDefault();
                 contestDetails = new ContestDetailsDTO
                 {
                     contestTypeId = contestType.ContestTypeId,
@@ -88,7 +114,7 @@ namespace DogShowAPI.Services
                     name = contestType.NamePolish,
                     isEnterable = Convert.ToBoolean(contestType.Enterable),
                     placeId = contest.PlaceId,
-                    placeName = contest.Place.Name,
+                    placeName = place.Name,
                     startDate = contest.StartDate,
                     endDate = contest.EndDate,
                     allowedBreeds = allowedBreeds,

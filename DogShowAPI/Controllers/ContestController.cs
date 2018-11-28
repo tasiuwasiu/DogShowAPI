@@ -222,7 +222,8 @@ namespace DogShowAPI.Controllers
                 userService.CanUserAccessDog(claimsIdentity, dogId);
                 List<DogParticipationDTO> response = contestService.getDogParticipation(dogId);
                 if (response.Count < 1)
-                    throw new AppException("Nie odnaleziono przypisanych konkursów");
+                    throw new AppException("Nie odnaleziono przypisanych konkurs" +
+                        "ów");
                 return Ok(response);
             }
             catch (Exception e)
@@ -230,5 +231,6 @@ namespace DogShowAPI.Controllers
                 return BadRequest(new { message = e.Message });
             }
         }
+
     }
 }
