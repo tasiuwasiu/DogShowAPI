@@ -35,7 +35,7 @@ namespace DogShowAPI.Controllers
         public IActionResult getContest(int id)
         {
             try
-            { 
+            {
                 var response = contestService.getContest(id);
                 if (response == null)
                     throw new AppException("Brak konkursu o podanym id w bazie");
@@ -113,6 +113,21 @@ namespace DogShowAPI.Controllers
 
         }
 
+        [HttpGet("getAvailableByDog/{dogId}")]
+        public IActionResult getAvailableByDog(int dogId)
+        {
+            try
+            {
+                var response = contestService.getContestsByDog(dogId);
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+
+        }
+
         [HttpGet("getNotPlanned")]
         public IActionResult getNotPlanned()
         {
@@ -128,4 +143,92 @@ namespace DogShowAPI.Controllers
                 return BadRequest(new { message = e.Message });
             }
         }
+
+        [HttpDelete("{id}")]
+        public IActionResult deleteContest(int id)
+        {
+            var claimsIdentity = this.User.Identity as ClaimsIdentity;
+            try
+            {
+                userService.IsUserAnOrganizator(claimsIdentity);
+                contestService.deleteContest(id);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+        [HttpPost("plan")]
+        public IActionResult planContest([FromBody]Contest contest)
+        {
+            var claimsIdentity = this.User.Identity as ClaimsIdentity;
+            try
+            {
+                userService.IsUserAnOrganizator(claimsIdentity);
+                var response = contestService.planContest(contest);
+                if (response == null)
+                    throw new AppException("Błąd planowania konkursu");
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+        [HttpPost("participate")]
+        public IActionResult participate([FromBody]Participation participation)
+        {
+            var claimsIdentity = this.User.Identity as ClaimsIdentity;
+            try
+            {
+                userService.CanUserAccessDog(claimsIdentity, participation.DogId);
+                contestService.participate(participation);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+        [HttpDelete("participation/{id}")]
+        public IActionResult deleteParticipation(int id)
+        {
+            var claimsIdentity = this.User.Identity as ClaimsIdentity;
+            try
+            {
+                Participation participation = contestService.getParticipationById(id);
+                if (participation == null)
+                    throw new AppException("Nie odnaleziono danego połączenia");
+                userService.CanUserAccessDog(claimsIdentity, participation.DogId);
+                contestService.deleteParticipation(participation);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+        [HttpGet("getDogParticipation/{dogId}")]
+        public IActionResult getDogParticipation(int dogId)
+        {
+            var claimsIdentity = this.User.Identity as ClaimsIdentity;
+            try
+            {
+                userService.CanUserAccessDog(claimsIdentity, dogId);
+                List<DogParticipationDTO> response = contestService.getDogParticipation(dogId);
+                if (response.Count < 1)
+                    throw new AppException("Nie odnaleziono przypisanych konkursów");
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+    }
 }

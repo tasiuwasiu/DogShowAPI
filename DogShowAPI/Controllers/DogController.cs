@@ -88,7 +88,6 @@ namespace DogShowAPI.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
-
         }
 
         [HttpDelete("{id}")]
@@ -97,7 +96,7 @@ namespace DogShowAPI.Controllers
             var claimsIdentity = this.User.Identity as ClaimsIdentity;
             try
             {
-                userService.IsUserAnOrganizator(claimsIdentity);
+                userService.CanUserAccessDog(claimsIdentity, id);
                 dogService.deleteDog(id);
                 return Ok();
             }
@@ -124,6 +123,67 @@ namespace DogShowAPI.Controllers
                 return BadRequest(new { message = e.Message });
             }
         }
+
+        [HttpGet("getByUserId/{userId}")]
+        public IActionResult getByUserId (int userId)
+        {
+            var claimsIdentity = this.User.Identity as ClaimsIdentity;
+            var userName = claimsIdentity.FindFirst(ClaimTypes.Name)?.Value;
+            if (userName == null)
+            {
+                return BadRequest(new { message = "Błąd autoryzacji" });
+            }
+            int user = int.Parse(userName);
+            if (userId != user)
+            {
+                return Unauthorized();
+            }
+            try
+            {
+                List<DogInfoDTO> response = dogService.getByUserId(userId);
+                if (response == null)
+                    throw new AppException("Nie odnaleziono psa o podanym ID");
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+        [HttpPost("edit/{dogId}")]
+        public IActionResult editDog (int dogId, [FromBody]Dog newDog)
+        {
+
+            return NotFound();
+        }
+
+        [HttpGet("details/{dogId}")]
+        public IActionResult getDogDetails(int dogId)
+        {
+            var claimsIdentity = this.User.Identity as ClaimsIdentity;
+            try
+            {
+                userService.CanUserAccessDog(claimsIdentity, dogId);
+                DogDetailsDTO response = dogService.getDogDetailsById(dogId);
+                if (response == null)
+                    throw new AppException("Nie odnaleziono psa o podanym ID");
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+        [HttpGet("getGroupSectionFromBreed/{breedId}")]
+        public IActionResult getGroupSectionFromBreed(int breedId)
+        {
+
+            return NotFound();
+        }
+
+
 
     }
 }

@@ -61,7 +61,12 @@ namespace DogShowAPI.Services
             {
                 throw new AppException("Nie odnaleziono podanego miejsca");
             }
+            if (place.Contest.Count > 0)
+            {
+                throw new AppException("Miejsce jest obecnie używane w konkursach!");
+            }
             context.Place.Remove(place);
+            context.SaveChanges();
         }
     }
 }

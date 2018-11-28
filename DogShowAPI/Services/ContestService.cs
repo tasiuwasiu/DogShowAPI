@@ -15,7 +15,14 @@ namespace DogShowAPI.Services
         void addAllowedBreeds(List<AllowedBreedsContest> allowedBreeds);
         List<ContestInfoDTO> getAll();
         List<ContestInfoDTO> getContestsByBreed(int breedId);
+        List<ContestInfoDTO> getContestsByDog(int dogId);
         List<ContestInfoDTO> getNotPlanned();
+        void deleteContest(int contestId);
+        Contest planContest(Contest newContest);
+        void participate(Participation participation);
+        void deleteParticipation(Participation participation);
+        Participation getParticipationById(int id);
+        List<DogParticipationDTO> getDogParticipation(int dogId);
     }
 
     public class ContestService : IContestService
@@ -115,17 +122,36 @@ namespace DogShowAPI.Services
             List<ContestInfoDTO> response = new List<ContestInfoDTO>();
             foreach (ContestType contest in contests )
             {
-                if (contest.Contest.Count > 0)
+                Contest plannedContest = context.Contest.Where(c => c.ContestTypeId == contest.ContestTypeId).FirstOrDefault();
+
+                if (plannedContest != null)
                 {
-                    response.Add(new ContestInfoDTO
+                    Place place = context.Place.Where(p => p.PlaceId == plannedContest.PlaceId).FirstOrDefault();
+                    if (place == null)
                     {
-                        contestTypeId = contest.ContestTypeId,
-                        contestId = contest.Contest.First().ContestId,
-                        name = contest.NamePolish,
-                        placeName = contest.Contest.First().Place.Name,
-                        startDate = contest.Contest.First().StartDate,
-                        endDate = contest.Contest.First().EndDate,
-                    });
+                        response.Add(new ContestInfoDTO
+                        {
+                            contestTypeId = contest.ContestTypeId,
+                            contestId = plannedContest.ContestId,
+                            name = contest.NamePolish,
+                            placeName = "Nie ustawiono",
+                            startDate = plannedContest.StartDate,
+                            endDate = plannedContest.EndDate,
+                        });
+                    }
+                    else
+                    {
+                        response.Add(new ContestInfoDTO
+                        {
+                            contestTypeId = contest.ContestTypeId,
+                            contestId = plannedContest.ContestId,
+                            name = contest.NamePolish,
+                            placeName = plannedContest.Place.Name,
+                            startDate = plannedContest.StartDate,
+                            endDate = plannedContest.EndDate,
+                        });
+                    }
+                    
                 }
                 else
                 {
@@ -144,26 +170,46 @@ namespace DogShowAPI.Services
             return response;
         }
 
-
         public List<ContestInfoDTO> getContestsByBreed(int breedId)
         {
             List<ContestInfoDTO> contests = new List<ContestInfoDTO>();
             List<AllowedBreedsContest> allowed = context.AllowedBreedsContest.Where(abc => abc.BreedTypeId == breedId).ToList();
             foreach (AllowedBreedsContest allowedBreedsContest in allowed)
             {
-                if (allowedBreedsContest.ContestType.Enterable)
+                ContestType contestType = context.ContestType.Where(ct => ct.ContestTypeId == allowedBreedsContest.ContestTypeId).FirstOrDefault();
+
+                if (contestType != null && contestType.Enterable)
                 {
-                    if(allowedBreedsContest.ContestType.Contest.Count >1)
+                    Contest plannedContest = context.Contest.Where(c => c.ContestTypeId == allowedBreedsContest.ContestTypeId).FirstOrDefault();
+
+                    if (plannedContest != null)
                     {
-                        contests.Add(new ContestInfoDTO
+                        Place place = context.Place.Where(p => p.PlaceId == plannedContest.PlaceId).FirstOrDefault();
+                        if (place != null)
                         {
-                            contestId = allowedBreedsContest.ContestType.Contest.First().ContestId,
-                            contestTypeId = allowedBreedsContest.ContestTypeId,
-                            name = allowedBreedsContest.ContestType.NamePolish,
-                            placeName = allowedBreedsContest.ContestType.Contest.First().Place.Name,
-                            startDate = allowedBreedsContest.ContestType.Contest.First().StartDate,
-                            endDate = allowedBreedsContest.ContestType.Contest.First().EndDate
-                        });
+                            contests.Add(new ContestInfoDTO
+                            {
+                                contestId = plannedContest.ContestId,
+                                contestTypeId = allowedBreedsContest.ContestTypeId,
+                                name = allowedBreedsContest.ContestType.NamePolish,
+                                placeName = place.Name,
+                                startDate = plannedContest.StartDate,
+                                endDate = plannedContest.EndDate
+                            });
+                        }
+                        else
+                        {
+                            contests.Add(new ContestInfoDTO
+                            {
+                                contestId = plannedContest.ContestId,
+                                contestTypeId = allowedBreedsContest.ContestTypeId,
+                                name = allowedBreedsContest.ContestType.NamePolish,
+                                placeName = "Nie ustawiono",
+                                startDate = plannedContest.StartDate,
+                                endDate = plannedContest.EndDate
+                            });
+                        }
+                        
                     }
                     else
                     {
@@ -193,8 +239,8 @@ namespace DogShowAPI.Services
                 notPlannedContests.Add(new ContestInfoDTO
                 {
                     contestId = -1,
-                    contestTypeId = c.ContestTypeId,
-                    name = c.NamePolish,
+                    contestTypeId = contest.ContestTypeId,
+                    name = contest.NamePolish,
                     placeName = null,
                     startDate = new DateTime(),
                     endDate = new DateTime()
@@ -203,6 +249,104 @@ namespace DogShowAPI.Services
             if (notPlannedContests.Count < 1)
                 throw new AppException("Brak niezaplanowanych konkursów");
             return notPlannedContests;
+        }
+
+        public void deleteContest(int contestId)
+        {
+            ContestType contest = context.ContestType.Where(ct => ct.ContestTypeId == contestId).FirstOrDefault();
+            if (contest == null)
+                throw new AppException("Nie odnaleziono podanego konkursu");
+            List<Participation> participations = context.Participation.Where(p => p.ContestId == contestId).ToList();
+            context.Participation.RemoveRange(participations);
+
+            List<AllowedBreedsContest> allowedBreeds = context.AllowedBreedsContest.Where(p => p.ContestTypeId == contestId).ToList();
+            if (allowedBreeds.Count > 0)
+                context.AllowedBreedsContest.RemoveRange(allowedBreeds);
+
+            List<Contest> contests = context.Contest.Where(c => c.ContestTypeId == contestId).ToList();
+            if (contests.Count > 0)
+            {
+                context.Contest.RemoveRange(contests);
+            }
+            context.Remove(contest);
+            context.SaveChanges();
+        }
+
+        public Contest planContest(Contest newContest)
+        {
+            ContestType contestType = context.ContestType.Where(ct => ct.ContestTypeId == newContest.ContestTypeId).FirstOrDefault();
+            if (contestType == null)
+                throw new AppException("Błędne id konkursu");
+            if (contestType.Contest.Count > 0)
+                throw new AppException("Konkurs jest już zaplanowany");
+            context.Contest.Add(newContest);
+            context.SaveChanges();
+            return context.Contest.Where(c => c.ContestId == newContest.ContestId).FirstOrDefault();
+        }
+
+        public List<ContestInfoDTO> getContestsByDog(int dogId)
+        {
+            Dog dog = context.Dog.Where(d => d.DogId == dogId).FirstOrDefault();
+            if (dog == null)
+                throw new AppException("Błędny id psa");
+            return getContestsByBreed(dog.BreedId);
+        }
+
+        public void participate(Participation participation)
+        {
+            participation.GradeId = null;
+            participation.Place = null;
+            context.Participation.Add(participation);
+            context.SaveChanges();
+        }
+
+        public void deleteParticipation(Participation participation)
+        {
+            context.Participation.Remove(participation);
+            context.SaveChanges();
+        }
+
+        public Participation getParticipationById(int id)
+        {
+            return context.Participation.Where(p => p.ParticipationId == id).FirstOrDefault();
+        }
+
+        public List<DogParticipationDTO> getDogParticipation(int dogId)
+        {
+            List<Participation> participations = context.Participation.Where(p => p.DogId == dogId).ToList();
+            if (participations == null)
+                return null;
+            List<DogParticipationDTO> dogParticipations = new List<DogParticipationDTO>();
+            foreach (Participation participation in participations)
+            {
+                ContestType contest = context.ContestType.Where(ct => ct.ContestTypeId == participation.ContestId).FirstOrDefault();
+                Grade grade = context.Grade.Where(g => g.GradeId == participation.GradeId).FirstOrDefault();
+                string place = (participation.Place == null) ? "Nie przyznano" : participation.Place.ToString();
+                if (grade == null)
+                {
+                    dogParticipations.Add(new DogParticipationDTO
+                    {
+                        participationId = participation.ParticipationId,
+                        dogId = participation.DogId,
+                        contestName = contest.NamePolish,
+                        grade = "Nie oceniono",
+                        place = place
+                   });
+                }
+                else
+                {
+                    dogParticipations.Add(new DogParticipationDTO
+                    {
+                        participationId = participation.ParticipationId,
+                        dogId = participation.DogId,
+                        contestName = contest.NamePolish,
+                        grade = grade.NamePolish,
+                        place = place
+                });
+                }
+                
+            }
+            return dogParticipations;
         }
     }
 }
