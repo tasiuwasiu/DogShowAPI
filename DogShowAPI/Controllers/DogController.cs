@@ -154,8 +154,17 @@ namespace DogShowAPI.Controllers
         [HttpPost("edit/{dogId}")]
         public IActionResult editDog (int dogId, [FromBody]Dog newDog)
         {
-
-            return NotFound();
+            var claimsIdentity = this.User.Identity as ClaimsIdentity;
+            try
+            {
+                userService.CanUserAccessDog(claimsIdentity, dogId);
+                dogService.editDog(dogId, newDog);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
         }
 
         [HttpGet("details/{dogId}")]
@@ -184,6 +193,22 @@ namespace DogShowAPI.Controllers
         }
 
 
+        [AllowAnonymous]
+        [HttpGet("getBreed/{breedId}")]
+        public IActionResult getBreed (int breedId)
+        {
+            try
+            {
+                var response = dogService.getBreed(breedId);
+                if (response == null)
+                    throw new AppException("Nie odnaleziono rasy");
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
 
     }
 }

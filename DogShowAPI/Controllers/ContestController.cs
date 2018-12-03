@@ -232,5 +232,22 @@ namespace DogShowAPI.Controllers
             }
         }
 
+        [AllowAnonymous]
+        [HttpGet("getPlan")]
+        public IActionResult getPlan()
+        {
+            try
+            {
+                List<PlanInfoDTO> response = contestService.getPlan();
+                if (response.Count <1 || response == null)
+                    throw new AppException("Brak zaplanowanych konkursów w bazie");
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
     }
 }

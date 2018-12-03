@@ -23,6 +23,7 @@ namespace DogShowAPI.Services
         void deleteParticipation(Participation participation);
         Participation getParticipationById(int id);
         List<DogParticipationDTO> getDogParticipation(int dogId);
+        List<PlanInfoDTO> getPlan();
     }
 
     public class ContestService : IContestService
@@ -373,6 +374,45 @@ namespace DogShowAPI.Services
                 
             }
             return dogParticipations;
+        }
+
+        public List<PlanInfoDTO> getPlan()
+        {
+            List<PlanInfoDTO> plans = new List<PlanInfoDTO>();
+            List<Contest> contests = context.Contest.ToList();
+            if (contests.Count < 1)
+                throw new AppException("Brak zaplanowanych konkursów");
+            var groupedContests = contests.GroupBy(c => c.StartDate.Date);
+            foreach (var gContest in groupedContests)
+            {
+                List<ContestInfoDTO> contestInfoList = new List<ContestInfoDTO>();
+                foreach( Contest contest in gContest)
+                {
+                    ContestType contestType = context.ContestType.Where(ct => ct.ContestTypeId == contest.ContestTypeId).FirstOrDefault();
+                    Place place = context.Place.Where(p => p.PlaceId == contest.PlaceId).FirstOrDefault();
+
+                    ContestInfoDTO contestInfo = new ContestInfoDTO
+                    {
+                        contestTypeId = contestType.ContestTypeId,
+                        contestId = contest.ContestId,
+                        name = contestType.NamePolish,
+                        placeName = place.Name,
+                        startDate = contest.StartDate,
+                        endDate = contest.EndDate
+                    };
+
+                    contestInfoList.Add(contestInfo);
+                }
+                
+                PlanInfoDTO planInfo = new PlanInfoDTO
+                {
+                    date = gContest.Key.ToShortDateString(),
+                    contests = contestInfoList
+                };
+
+                plans.Add(planInfo);
+            }
+            return plans;
         }
     }
 }

@@ -19,6 +19,8 @@ namespace DogShowAPI.Services
         Dog getDogById(int dogId);
         DogDetailsDTO getDogDetailsById(int dogId);
         List<DogInfoDTO> getByUserId(int userId);
+        DogBreed getBreed(int breedId);
+        void editDog(int dogId, Dog newDog);
     }
 
 
@@ -138,6 +140,30 @@ namespace DogShowAPI.Services
             return dogInfo;
         }
 
+        public DogBreed getBreed(int breedId)
+        {
+            return context.DogBreed.Where(db => db.BreedId == breedId).FirstOrDefault();
+        }
 
+        public void editDog(int dogId, Dog newDog)
+        {
+            Dog dog = context.Dog.Where(d => d.DogId == dogId).FirstOrDefault();
+            if (dog == null)
+                throw new AppException("Nie odnaleziono psa");
+            dog.Name = newDog.Name;
+            dog.LineageNumber = newDog.LineageNumber;
+            dog.RegistrationNumber = newDog.RegistrationNumber;
+            dog.Titles = newDog.Titles;
+            dog.ChipNumber = newDog.ChipNumber;
+            dog.Sex = newDog.Sex;
+            dog.Birthday = newDog.Birthday;
+            dog.FatherName = newDog.FatherName;
+            dog.MotherName = newDog.MotherName;
+            dog.BreederName = newDog.BreederName;
+            dog.BreederAddress = newDog.BreederAddress;
+            dog.ClassId = newDog.ClassId;
+
+            context.SaveChanges();
+        }
     }
 }
