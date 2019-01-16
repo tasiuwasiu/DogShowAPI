@@ -57,7 +57,7 @@ namespace DogShowAPI.Controllers
 
             if (response == null)
             {
-                return BadRequest(new { message = "Błąd edycji tytułu!" });
+                return BadRequest(new { message = "Błąd pobrania danych ustawień!" });
             }
             return Ok(response);
         }

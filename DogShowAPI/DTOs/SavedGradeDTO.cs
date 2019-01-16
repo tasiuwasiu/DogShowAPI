@@ -5,13 +5,12 @@ using System.Threading.Tasks;
 
 namespace DogShowAPI.DTOs
 {
-    public class DogParticipationDTO
+    public class SavedGradeDTO
     {
         public int participationId { get; set; }
-        public int dogId { get; set; }
-        public string contestName { get; set; }
-        public string grade { get; set; }
-        public string place { get; set; }
+        public int gradeId { get; set; }
+        public bool isFinalist { get; set; }
+        public int place { get; set; }
         public string description { get; set; }
     }
 }

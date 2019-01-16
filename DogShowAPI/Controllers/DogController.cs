@@ -21,13 +21,15 @@ namespace DogShowAPI.Controllers
     {
         private IUserService userService;
         private IDogService dogService;
+        private IAppSettingsService appSettingsService;
         private readonly SecuritySettings securitySettings;
 
 
-        public DogController(IDogService dogService, IUserService userService, IOptions<SecuritySettings> securitySettings)
+        public DogController(IDogService dogService, IUserService userService, IAppSettingsService appSettingsService, IOptions<SecuritySettings> securitySettings)
         {
             this.userService = userService;
             this.dogService = dogService;
+            this.appSettingsService = appSettingsService;
             this.securitySettings = securitySettings.Value;
         }
 
@@ -77,6 +79,8 @@ namespace DogShowAPI.Controllers
 
             try
             {
+                if (!appSettingsService.canEnter())
+                    throw new AppException("Akcja obecnie niedozwolona");
                 Dog addedDog = dogService.addDog(newDog);
                 if (addedDog == null)
                 {
@@ -96,6 +100,8 @@ namespace DogShowAPI.Controllers
             var claimsIdentity = this.User.Identity as ClaimsIdentity;
             try
             {
+                if (!appSettingsService.canEnter())
+                    throw new AppException("Akcja obecnie niedozwolona");
                 userService.CanUserAccessDog(claimsIdentity, id);
                 dogService.deleteDog(id);
                 return Ok();
@@ -157,6 +163,8 @@ namespace DogShowAPI.Controllers
             var claimsIdentity = this.User.Identity as ClaimsIdentity;
             try
             {
+                if (!appSettingsService.canEnter())
+                    throw new AppException("Akcja obecnie niedozwolona");
                 userService.CanUserAccessDog(claimsIdentity, dogId);
                 dogService.editDog(dogId, newDog);
                 return Ok();

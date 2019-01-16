@@ -1,4 +1,6 @@
-﻿using DogShowAPI.Models;
+﻿using DogShowAPI.Helpers;
+using DogShowAPI.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +14,8 @@ namespace DogShowAPI.Services
         AppSetting getTitle();
         AppSetting getAppState();
         AppSetting setAppState(string appState);
+        bool canGrade();
+        bool canEnter();
     }
 
     public class AppSettingsService : IAppSettingsService
@@ -77,6 +81,24 @@ namespace DogShowAPI.Services
                 context.SaveChanges();
             }
             return context.AppSetting.Where(a => a.SettingName == APP_STATE_SETTING).FirstOrDefault();
+        }
+
+        public bool canGrade()
+        {
+            AppSetting stateSetting = getAppState();
+            if (stateSetting == null)
+                return false;
+            AppStateSetting a = JsonConvert.DeserializeObject<AppStateSetting>(stateSetting.SettingValue);
+            return a.appState == 20;
+        }
+
+        public bool canEnter()
+        {
+            AppSetting stateSetting = getAppState();
+            if (stateSetting == null)
+                return true;
+            AppStateSetting a = JsonConvert.DeserializeObject<AppStateSetting>(stateSetting.SettingValue);
+            return a.appState == 10;
         }
     }
 }

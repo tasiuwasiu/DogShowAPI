@@ -16,6 +16,7 @@ namespace DogShowAPI.Services
         int GetUserPermissionLevel(int userId);
         User Update(int userID, User newData);
         bool IsUserAnOrganizator(ClaimsIdentity identity);
+        bool IsUserAnJudge(ClaimsIdentity identity);
         bool CanUserAccessDog(ClaimsIdentity identity, int dogId);
     }
 
@@ -115,6 +116,22 @@ namespace DogShowAPI.Services
             int userId = int.Parse(userName);
             int userPermissions = GetUserPermissionLevel(userId);
             if (userPermissions != 1 && userPermissions != 2)
+            {
+                throw new AppException("Brak uprawnień do wykonania akcji");
+            }
+            return true;
+        }
+
+        public bool IsUserAnJudge(ClaimsIdentity identity)
+        {
+            var userName = identity.FindFirst(ClaimTypes.Name)?.Value;
+            if (userName == null)
+            {
+                throw new AppException("Błąd autoryzacji");
+            }
+            int userId = int.Parse(userName);
+            int userPermissions = GetUserPermissionLevel(userId);
+            if (userPermissions != 1 && userPermissions != 2 && userPermissions != 3)
             {
                 throw new AppException("Brak uprawnień do wykonania akcji");
             }

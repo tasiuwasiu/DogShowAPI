@@ -21,13 +21,15 @@ namespace DogShowAPI.Controllers
     {
         private IContestService contestService;
         private IUserService userService;
+        private IAppSettingsService appSettingsService;
         private readonly SecuritySettings securitySettings;
 
-        public ContestController(IContestService contestService, IUserService userService, IOptions<SecuritySettings> securitySettings)
+        public ContestController(IContestService contestService, IUserService userService, IAppSettingsService appSettingsService, IOptions<SecuritySettings> securitySettings)
         {
             this.contestService = contestService;
             this.userService = userService;
             this.securitySettings = securitySettings.Value;
+            this.appSettingsService = appSettingsService;
         }
 
         [AllowAnonymous]
@@ -71,6 +73,8 @@ namespace DogShowAPI.Controllers
             try
             {
                 userService.IsUserAnOrganizator(claimsIdentity);
+                if (!appSettingsService.canEnter())
+                    throw new AppException("Akcja obecnie niedozwolona");
                 List<AllowedBreedsContest> allowedBreeds = new List<AllowedBreedsContest>();
                 foreach (int breedId in newContestType.breedIds)
                 {
@@ -178,12 +182,37 @@ namespace DogShowAPI.Controllers
             }
         }
 
+        [HttpPost("edit/{id}")]
+        public IActionResult editContest(int id, [FromBody]ContestDetailsDTO newContest)
+        {
+            var claimsIdentity = this.User.Identity as ClaimsIdentity;
+            try
+            {
+                userService.IsUserAnOrganizator(claimsIdentity);
+                if (!appSettingsService.canEnter())
+                    throw new AppException("Akcja obecnie niedozwolona");
+
+                var response = contestService.editContest(id, newContest);
+                if (response == null)
+                {
+                    throw new AppException("Błąd edycji konkursu");
+                }
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
         [HttpPost("participate")]
         public IActionResult participate([FromBody]Participation participation)
         {
             var claimsIdentity = this.User.Identity as ClaimsIdentity;
             try
             {
+                if (!appSettingsService.canEnter())
+                    throw new AppException("Akcja obecnie niedozwolona");
                 userService.CanUserAccessDog(claimsIdentity, participation.DogId);
                 contestService.participate(participation);
                 return Ok();
@@ -200,6 +229,8 @@ namespace DogShowAPI.Controllers
             var claimsIdentity = this.User.Identity as ClaimsIdentity;
             try
             {
+                if (!appSettingsService.canEnter())
+                    throw new AppException("Akcja obecnie niedozwolona");
                 Participation participation = contestService.getParticipationById(id);
                 if (participation == null)
                     throw new AppException("Nie odnaleziono danego połączenia");
@@ -249,5 +280,36 @@ namespace DogShowAPI.Controllers
             }
         }
 
+        [HttpGet("getAllGrades")]
+        public IActionResult getAllGrades()
+        {
+            try
+            {
+                List<GradeDTO> response = contestService.getAllGrades();
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+        [HttpPost("saveGrade/{participationId}")]
+        public IActionResult saveGrade(int participationId, [FromBody]SavedGradeDTO grade)
+        {
+            var claimsIdentity = this.User.Identity as ClaimsIdentity;
+            try
+            {
+                if (!appSettingsService.canGrade())
+                    throw new AppException("Akcja obecnie niedozwolona");
+                userService.IsUserAnJudge(claimsIdentity);
+                contestService.saveGrade(grade);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
     }
 }

@@ -10,6 +10,7 @@ namespace DogShowAPI.Models
         public int ContestId { get; set; }
         public int? GradeId { get; set; }
         public int? Place { get; set; }
+        public string Description { get; set; }
 
         public ContestType Contest { get; set; }
         public Dog Dog { get; set; }

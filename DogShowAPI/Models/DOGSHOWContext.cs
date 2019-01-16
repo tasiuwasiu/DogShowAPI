@@ -220,8 +220,7 @@ namespace DogShowAPI.Models
 
                 entity.Property(e => e.Enterable)
                     .HasColumnName("ENTERABLE")
-                    .HasColumnType("bit")
-                    .HasDefaultValueSql("'1'");
+                    .HasColumnType("bit");
 
                 entity.Property(e => e.NameEnglish)
                     .HasColumnName("NAME_ENGLISH")
@@ -458,6 +457,10 @@ namespace DogShowAPI.Models
                 entity.Property(e => e.Place)
                     .HasColumnName("PLACE")
                     .HasColumnType("int(11)");
+
+                entity.Property(e => e.Description)
+                    .HasColumnName("DESCRIPTION")
+                    .HasColumnType("text");
 
                 entity.HasOne(d => d.Contest)
                     .WithMany(p => p.Participation)

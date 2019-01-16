@@ -24,6 +24,9 @@ namespace DogShowAPI.Services
         Participation getParticipationById(int id);
         List<DogParticipationDTO> getDogParticipation(int dogId);
         List<PlanInfoDTO> getPlan();
+        List<GradeDTO> getAllGrades();
+        void saveGrade(SavedGradeDTO grade);
+        ContestDetailsDTO editContest(int id, ContestDetailsDTO newContest);
     }
 
     public class ContestService : IContestService
@@ -61,29 +64,38 @@ namespace DogShowAPI.Services
                 Dog dog = context.Dog.Where(d => d.DogId == p.DogId).FirstOrDefault();
                 DogBreed breed = context.DogBreed.Where(db => db.BreedId == dog.BreedId).FirstOrDefault();
                 Grade grade = context.Grade.Where(g => g.GradeId == p.GradeId).FirstOrDefault();
+                DogClass classD = context.DogClass.Where(c => c.ClassId == dog.ClassId).FirstOrDefault();
                 string place = (p.Place == null) ? "Nie przyznano" : p.Place.ToString();
                 if (grade == null)
                 {
                     participations.Add(new ParticipationInfoDTO
                     {
+                        participationId = p.ParticipationId,
                         dogId = p.DogId,
                         name = dog.Name,
                         breedName = breed.NamePolish,
+                        className = classD.NamePolish,
                         chipNumber = dog.ChipNumber,
+                        gradeId = 0,
                         grade = "Nie oceniono",
-                        place = place
+                        place = place,
+                        description = p.Description
                     });
                 }
                 else
                 {
                     participations.Add(new ParticipationInfoDTO
                     {
+                        participationId = p.ParticipationId,
                         dogId = p.DogId,
                         name = dog.Name,
                         breedName = breed.NamePolish,
+                        className = classD.NamePolish,
                         chipNumber = dog.ChipNumber,
+                        gradeId = grade.GradeId,
                         grade = grade.NamePolish,
-                        place = place
+                        place = place,
+                        description = p.Description
                     });
                 }
             }
@@ -130,6 +142,24 @@ namespace DogShowAPI.Services
             context.ContestType.Add(newContest);
             context.SaveChanges();
             return context.ContestType.Where(ct => ct.ContestTypeId == newContest.ContestTypeId).FirstOrDefault();
+        }
+
+        public ContestDetailsDTO editContest(int id, ContestDetailsDTO newContest)
+        {
+            ContestType contestType = context.ContestType.Where(ct => ct.ContestTypeId == id).FirstOrDefault();
+            if (contestType == null)
+                throw new AppException("Nie odnaleziono konkursu w bazie");
+            Contest contest = context.Contest.Where(c => c.ContestTypeId == id).FirstOrDefault();
+            contestType.NamePolish = newContest.name;
+            contestType.Enterable = newContest.isEnterable;
+            if (contest != null)
+            {
+                contest.PlaceId = newContest.placeId;
+                contest.StartDate = newContest.startDate;
+                contest.EndDate = newContest.endDate;
+            }
+            context.SaveChanges();
+            return getContest(id);
         }
 
         public void addAllowedBreeds(List<AllowedBreedsContest> allowedBreeds)
@@ -357,7 +387,8 @@ namespace DogShowAPI.Services
                         dogId = participation.DogId,
                         contestName = contest.NamePolish,
                         grade = "Nie oceniono",
-                        place = place
+                        place = place,
+                        description = participation.Description
                    });
                 }
                 else
@@ -368,8 +399,9 @@ namespace DogShowAPI.Services
                         dogId = participation.DogId,
                         contestName = contest.NamePolish,
                         grade = grade.NamePolish,
-                        place = place
-                });
+                        place = place,
+                        description = participation.Description
+                    });
                 }
                 
             }
@@ -413,6 +445,42 @@ namespace DogShowAPI.Services
                 plans.Add(planInfo);
             }
             return plans;
+        }
+
+        public List<GradeDTO> getAllGrades()
+        {
+            List<Grade> grades = context.Grade.ToList();
+            List<GradeDTO> gradesDTO = new List<GradeDTO>();
+            foreach (Grade g in grades)
+            {
+                gradesDTO.Add(new GradeDTO
+                {
+                    gradeId = g.GradeId,
+                    gradeLevel = g.GradeLevel,
+                    namePolish = g.NamePolish,
+                    nameEnglish = g.NameEnglish,
+                    forPuppies = g.ForPuppies
+                });
+            }
+            if (gradesDTO.Count < 1)
+                throw new AppException("Nie odnaleziono ocen");
+            return gradesDTO;
+        }
+
+        public void saveGrade(SavedGradeDTO grade)
+        {
+            Participation participation = context.Participation.Where(p => p.ParticipationId == grade.participationId).FirstOrDefault();
+            if (participation == null)
+                throw new AppException("Nie odnaleziono uczestnika");
+            participation.GradeId = grade.gradeId;
+            participation.Description = grade.description;
+            if (grade.isFinalist)
+            {
+                if (context.Participation.Where(p => p.ContestId == grade.gradeId && p.Place == grade.place && p.ParticipationId != grade.participationId).Count() > 0)
+                    throw new AppException("Istnieje już finalista o podanym miejscu");
+                participation.Place = grade.place;
+            }
+            context.SaveChanges();
         }
     }
 }
